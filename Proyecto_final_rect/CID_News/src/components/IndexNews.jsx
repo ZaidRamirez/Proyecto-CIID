@@ -1,42 +1,30 @@
 import React, { useEffect, useState } from 'react'
 import imgEdit from "../assets/filter.png"
 import axios from 'axios';
-
+import { formatDate } from '../helpers/formatDate';
+import { getNews } from '../helpers/getNews';
 
 export const IndexNews = () => {
 
+    const [loading, setLoading] = useState(true);
     const [query, setQuery] = useState("");
     const [dateNews, setDateNews] = useState("Day")
     const [results, setResults] = useState([]);
     const [editing, setEditing] = useState(false);
     const [filter, setFilter] = useState("0");
-    const [search, setSearch] = useState(null);
     const filterIndex = {
-        "0": null,
+        "0": "Pais",
         "1": "Economía digital",
         "2": "Entretenimiento",
         "3": "Negocios"
     }
+    
 
-    //Función para obtener las noticias de la API
+    //Función para obtener las noticias de la API al momento de cargar la página
     useEffect(() => {
-        const getNews = async () => {
-            try {
-                const response = await axios.get(`https://api.bing.microsoft.com/v7.0/news`, {
-                    params: {
-                        count: 12,
-                    },
-                    headers: {
-                        'Ocp-Apim-Subscription-Key': '5dfe3c8210c04ecb956b4dc17c7b3a39'
-                    }
-                });
-
-                setResults(Object.values(response.data.value))
-            } catch (error) {
-                console.error("Error en Bing News:", error);
-            }
-        };
-        getNews();
+        getNews()
+            .then(response => { setResults(response); })
+            .catch(error => { console.error("Error al obtener las noticias:", error); });
     }, []);
 
     //Funcion para mostrar el formulario para filtrar resultados
@@ -55,16 +43,26 @@ export const IndexNews = () => {
     //Función para filtrar los resultados
     const handleSetFilter = (e, clear = false) => {
         e.preventDefault();
-        let form = document.getElementById("form-filter");
 
-        setFilter(form.filter.value);
-        setSearch(form.search.value.trim());
+        let selectData = e.target.value;
+        setFilter(selectData);
+        let q = `${filterIndex[selectData]}`;
+        let form = document.getElementById("form-filter");
+        
         form.className = "d-none filter-news";
         setEditing(false);
 
-        if (clear) {
+        if (!clear) {
+        getNews(q, "Week")
+            .then(response => { setResults(response); })
+            .catch(error => { console.error("Error al obtener las noticias:", error); });
+        }else{
             setFilter("0");
             document.querySelector('#filter option[value="0"]').selected = true;
+
+            getNews()
+            .then(response => { setResults(response); })
+            .catch(error => { console.error("Error al obtener las noticias:", error); });
         }
     }
 
@@ -82,16 +80,17 @@ export const IndexNews = () => {
 
                 {/*Formulario para filtrar las noticias*/}
                 <form className="d-none my-3 filter-news" id='form-filter'>
-                    <select className="form-select form-select-sm my-2" name="filter" id="filter">
+                    <select 
+                        className="form-select form-select-sm my-2" 
+                        name="filter" 
+                        id="filter" 
+                        onChange={handleSetFilter}
+                    >
                         <option value="0"> Filtrar </option>
                         <option value="1">Economía digital</option>
                         <option value="2">Entretenimiento</option>
                         <option value="3">Negocios</option>
                     </select>
-
-                    <input type="text" placeholder="Busque una noticia" className="w-75" name='search' />
-
-                    <input type="submit" value="Filtrar" onClick={handleSetFilter} />
                 </form>
             </section>
 
@@ -99,7 +98,7 @@ export const IndexNews = () => {
 
             {/*div para mostrar los filtros */}
 
-            {(filter !== null && filter !== "0") && (
+            {(filter !== "0") && (
                 <div className="filters">
                     <p className="filter">
                         Filtrado por <span className='btn btn-outline-danger p-1' id='filter-name'>{filterIndex[filter]}</span>
@@ -110,9 +109,8 @@ export const IndexNews = () => {
 
             {/*Inicio de las noticias*/}
             <section className="content">
-                {console.log('results antes del map', results)}
-                {results.map(({name, description, datePublished}, index) => {
 
+                {results.map(({ name, description, datePublished }, index) => (
                     <div className="card my-2 shadow-sm" key={index}>
                         <img src="https://picsum.photos/1000" className="card-img-top" alt="" />
                         <div className="card-body d-flex flex-column">
@@ -121,14 +119,16 @@ export const IndexNews = () => {
                                 {description}
                             </p>
                             <p className="card-date">
-                                {datePublished}
+                                {formatDate(datePublished)}
                             </p>
                             <a href="#" className="btn btn-secondary">Ver noticia</a>
                             <a href="#" className="btn btn-outline-secondary mt-1">Agregar a una lista</a>
 
                         </div>
                     </div>
-                })}
+                )
+                )
+                }
 
             </section>
         </>
