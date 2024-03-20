@@ -34,6 +34,18 @@ a.nav-link{
   width: 23%;
 }
 
+.filter{
+  font-size: 0.8rem;
+}
+
+#filter-name{
+  font-size: 0.8rem;
+}
+
+.btn-delete{
+  font-size: 0.8rem;
+}
+
 img.card-img-top{
   max-height: 25vh;
   object-fit: cover;
