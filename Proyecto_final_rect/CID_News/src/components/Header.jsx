@@ -12,8 +12,10 @@ export const Header = () => {
                 </Link>
                 <ul className="navbar-nav d-flex flex-row gap-3">
                     <li className="nav-item">
+                        <NavLink to="/" className="nav-link">Home</NavLink>
                     </li>
                     <li className="nav-item">
+                        <NavLink to="/lists" className="nav-link">Mis listas</NavLink>
                     </li>
                 </ul>
             </div>
